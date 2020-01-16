@@ -473,12 +473,14 @@ prepare_rabbit_log_config() ->
         tty ->
             set_env_default_log_console();
         FileName when is_list(FileName) ->
-            case os:getenv("RABBITMQ_LOGS_source") of
+            case rabbit_prelaunch:get_context() of
                 %% The user explicitly sets $RABBITMQ_LOGS;
                 %% we should override a file location even
                 %% if it's set in rabbitmq.config
-                "environment" -> set_env_default_log_file(FileName, override);
-                _             -> set_env_default_log_file(FileName, keep)
+                #{var_origins := #{main_log_file := environment}} ->
+                    set_env_default_log_file(FileName, override);
+                _ ->
+                    set_env_default_log_file(FileName, keep)
             end
     end,
 
